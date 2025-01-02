@@ -32,12 +32,14 @@ class Memory:
                 self.memory[self.instruct_count] = line.rstrip()  # 去除行尾的換行符
                 self.instruct_count += 1
         
-    def dump(self):
-        """ 顯示 memory 內容 """
+
+    def dump(self, file=None):
+        """顯示 memory 內容"""
         for i, val in enumerate(self.memory):
-            print(f"W{i} ", end="")
-        print()
+            print(f"W{i} ", end="", file=file, flush=True)
+        print(file=file, flush=True)
         for i, val in enumerate(self.memory):
-            print(f"{val}  ", end="")
-        print()
+            print(f"{val}  ", end="", file=file, flush=True)
+        print(file=file, flush=True)
+
             

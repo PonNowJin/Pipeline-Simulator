@@ -3,7 +3,7 @@ from memory import Memory
 from registers import Registers
 
 class PipelineSimulator:
-    def __init__(self, instruc_mem:Memory, debug_reg_mem=False, debug_pipeline_reg=False):
+    def __init__(self, instruc_mem:Memory, output_file:str, debug_reg_mem=False, debug_pipeline_reg=False):
         # 初始化記憶體、暫存器和 PC
         self.memory = Memory()           # 存數值
         self.instruct_mem = instruc_mem   # 存指令
@@ -12,6 +12,9 @@ class PipelineSimulator:
         self.pc_stall = False
         self.debug_reg_mem = debug_reg_mem
         self.debug_pipeline_reg = debug_pipeline_reg
+        
+        # 初始化輸出檔案
+        self.output_file = open(output_file, "w")
         
         # branch 信號，ID stage 設定，IF stage 接收
         self.branch_target = 0              # 要banch的 pc address
@@ -39,12 +42,14 @@ class PipelineSimulator:
         
         # stall early stop
         if self.IF_ID.stall:
-            print(f"    {parts[0]}: IF")
+            print(f"    {parts[0]}: IF", file=self.output_file, flush=True)
+
             return
         
         # branch early stop
         if self.beq_signal == True:
-            print(f"    {parts[0]}: IF")
+            print(f"    {parts[0]}: IF", file=self.output_file, flush=True)
+
             # branch target 是 beq 後下一條指令加上偏移量
             self.pc = self.pc + (self.ID_EX.imm*4)
             # print('pc after branch: ', self.pc)
@@ -109,7 +114,7 @@ class PipelineSimulator:
         if not self.pc_stall:
             self.pc += 4
             
-        print(f"    {parts[0]}: IF")
+        print(f"    {parts[0]}: IF", file=self.output_file, flush=True)
         
     def instruction_decode(self):
         """ ID: Instruction Decode 階段 """
@@ -189,7 +194,8 @@ class PipelineSimulator:
         if not self.IF_ID.stall:
             self.beq()
         
-        print(f"    {opcode}: ID")
+        print(f"    {opcode}: ID", file=self.output_file, flush=True)
+
         
         # 清空暫存器
         # self.IF_ID.reset()
@@ -234,11 +240,11 @@ class PipelineSimulator:
         self.EX_MEM.WB_signal = self.ID_EX.WB_signal
         
         # print(f"EX: Execute instruction {instruction} | result = {result}")
-        print(f"    {opcode}: EX ", 
-              f"{self.ID_EX.EXE_signal['RegDst']} {self.ID_EX.EXE_signal['ALUSrc']} ", 
-              f"{self.ID_EX.MEM_signal['Branch']} {self.ID_EX.MEM_signal['MemRead']} {self.ID_EX.MEM_signal['MemWrite']} ", 
-              f"{self.ID_EX.WB_signal['RegWrite']} {self.ID_EX.WB_signal['MemtoReg']}")
-        
+        print(f"    {opcode}: EX "
+            f"{self.ID_EX.EXE_signal['RegDst']} {self.ID_EX.EXE_signal['ALUSrc']} "
+            f"{self.ID_EX.MEM_signal['Branch']} {self.ID_EX.MEM_signal['MemRead']} {self.ID_EX.MEM_signal['MemWrite']} "
+            f"{self.ID_EX.WB_signal['RegWrite']} {self.ID_EX.WB_signal['MemtoReg']}", 
+            file=self.output_file, flush=True)
         # 清空暫存器
         # self.ID_EX.reset()
         
@@ -282,7 +288,8 @@ class PipelineSimulator:
         # print(f"MEM: Memory Access | mem_data = {mem_data}")
         print(f"    {opcode}: MEM ",  
               f"{self.EX_MEM.MEM_signal['Branch']} {self.EX_MEM.MEM_signal['MemRead']} {self.EX_MEM.MEM_signal['MemWrite']} ", 
-              f"{self.EX_MEM.WB_signal['RegWrite']} {self.EX_MEM.WB_signal['MemtoReg']}")
+              f"{self.EX_MEM.WB_signal['RegWrite']} {self.EX_MEM.WB_signal['MemtoReg']}",
+              file=self.output_file, flush=True)
         
         # 清空暫存器
         # self.EX_MEM.reset()
@@ -304,7 +311,8 @@ class PipelineSimulator:
         
         # print(f"WB: Write Back to register {write_reg}")
         print(f"    {opcode}: WB ",   
-              f"{self.MEM_WB.WB_signal['RegWrite']} {self.MEM_WB.WB_signal['MemtoReg']}")
+              f"{self.MEM_WB.WB_signal['RegWrite']} {self.MEM_WB.WB_signal['MemtoReg']}", 
+              file=self.output_file, flush=True)
         
         # 清空暫存器
         # self.MEM_WB.reset()
@@ -411,7 +419,7 @@ class PipelineSimulator:
         cycles = 1
         
         while self.IF_ID.instruction or self.ID_EX.instruction or self.EX_MEM.instruction or self.MEM_WB.instruction or self.pc==0:
-            print(f'\nCycle {cycles}', flush=True)
+            print(f'\nCycle {cycles}', file=self.output_file, flush=True)
             
             # self.stall_pipeline()
             
@@ -439,10 +447,13 @@ class PipelineSimulator:
                 self.MEM_WB.dump()
             
             
-        print(f"\n需要{cycles-1}個cycles")
-        print("----------------------------------------------")
-        self.registers.dump()
-        self.memory.dump()
+        print(f"\n需要{cycles-1}個cycles", file=self.output_file, flush=True)
+        print("----------------------------------------------", file=self.output_file, flush=True)
+        self.registers.dump(file=self.output_file)
+        self.memory.dump(file=self.output_file)
+
+        
+        self.output_file.close()
             
             
         

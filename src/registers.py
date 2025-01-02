@@ -19,13 +19,15 @@ class Registers:
         else:
             raise ValueError("Invalid register number")
         
-    def dump(self):
-        """ 顯示所有暫存器的值 """
+
+    def dump(self, file=None):
+        """顯示所有暫存器的值"""
         for i, val in enumerate(self.registers):
-            print(f"${i} ", end="")
-        print()
+            print(f"${i} ", end="", file=file, flush=True)
+        print(file=file, flush=True)
         for i, val in enumerate(self.registers):
-            print(f"{val}  ", end="")
-        print()
+            print(f"{val}  ", end="", file=file, flush=True)
+        print(file=file, flush=True)
+
             
     
