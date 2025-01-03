@@ -447,7 +447,7 @@ class PipelineSimulator:
                 self.MEM_WB.dump()
             
             
-        print(f"\n需要{cycles-1}個cycles", file=self.output_file, flush=True)
+        print(f"\nNeed {cycles-1} cycles", file=self.output_file, flush=True)
         print("----------------------------------------------", file=self.output_file, flush=True)
         self.registers.dump(file=self.output_file)
         self.memory.dump(file=self.output_file)
